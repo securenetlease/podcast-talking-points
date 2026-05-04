@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SNL Market Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700&family=Raleway:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:#F3F3F3; --surface:#FFFFFF; --border:#DCE3EB; --red:#FF5D52;
+      --text:#1D2839; --muted:#475A6A; --faint:#7A90A2;
+      --green:#4CAF7D; --amber:#F4A343; --blue:#475A6A;
+      --r:8px; --rl:14px;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Inter',system-ui,sans-serif;background:#F3F3F3;color:#1D2839;min-height:100vh;font-size:15px;line-height:1.6;}
+
+    .hdr{background:#1D2839;border-bottom:2px solid var(--red);padding:0 32px;height:62px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;}
+    .hdr-l{display:flex;align-items:center;gap:16px;}
+    .logo{font-family:'Raleway',sans-serif;font-size:19px;font-weight:800;color:#fff;letter-spacing:.08em;text-transform:uppercase;word-spacing:.15em;}
+    .logo span{color:var(--red);}
+    .hdiv{width:1px;height:26px;background:var(--faint);}
+    .hsub{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:500;color:#DCE3EB;letter-spacing:.14em;text-transform:uppercase;}
+    .mbadge{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:5px 16px;background:#FF5D52;color:#FFFFFF;border-radius:20px;}
+    select.mbadge{border:none;outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='white' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;background-color:#FF5D52;padding-right:28px;}
+    select.mbadge option{background:#1a1f2e;color:#fff;font-weight:600;letter-spacing:.05em;text-transform:none;}
+    .upd{font-size:11px;color:var(--faint);}
+
+    .tabs{background:#FFFFFF;border-bottom:2px solid #DCE3EB;padding:0 32px;display:flex;overflow-x:auto;}
+    .tabs::-webkit-scrollbar{height:3px;}
+    .tabs::-webkit-scrollbar-thumb{background:var(--faint);border-radius:2px;}
+    .tb{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#475A6A;padding:14px 22px;border:none;background:#FFFFFF;cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;white-space:nowrap;}
+    .tb:hover{color:#1D2839;}
+    .tb.active{color:#FF5D52;border-bottom-color:#FF5D52;}
+
+    .main{padding:32px 36px;}
+    .panel{display:none;}
+    .panel.active{display:block;}
+    .pg-title{font-family:'Raleway',sans-serif;font-size:32px;font-weight:700;color:#1D2839;margin-bottom:8px;}
+    .pg-sub{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:26px;}
+    .sl{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#FF5D52;padding:5px 14px;background:rgba(255,93,82,.10);border-left:3px solid #FF5D52;border-radius:0 var(--r) var(--r) 0;display:inline-block;margin-bottom:16px;}
+
+    .ov-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;margin-bottom:32px;}
+    .ov-card{background:#FFFFFF;border:1px solid var(--border);border-radius:var(--rl);padding:30px 26px;cursor:pointer;transition:border-color .2s,transform .15s,box-shadow .2s;box-shadow:0 1px 4px rgba(0,0,0,0.06);min-height:260px;display:flex;flex-direction:column;justify-content:space-between;}
+    .ov-card:hover{border-color:#FF5D52;transform:translateY(-2px);box-shadow:0 4px 16px rgba(29,40,57,.10);}
+    .ov-name{font-family:'Raleway',sans-serif;font-size:22px;font-weight:700;color:#1D2839;margin-bottom:14px;}
+    .ov-meta{font-size:11px;color:var(--muted);}
+    .ov-nums{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;}
+    .ov-box{background:#F3F3F3;border-radius:var(--r);padding:16px 18px;border:1px solid #DCE3EB;}
+    .ov-box .lb{font-size:11px;color:#475A6A;text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin-bottom:4px;}
+    .ov-box .vl{font-family:'Barlow Condensed',sans-serif;font-size:34px;font-weight:700;color:#1D2839;}
+    .ov-box .sb{font-size:12px;color:#475A6A;}
+
+    .net-bar{display:flex;align-items:center;gap:16px;background:#FFFFFF;border:1px solid #DCE3EB;box-shadow:0 1px 4px rgba(29,40,57,.06);border-radius:var(--r);padding:20px 26px;margin-bottom:28px;}
+    .net-txt{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;}
+    .net-lbl{margin-left:auto;font-size:12px;color:var(--muted);}
+    .c-pos{color:#2e8b57;font-weight:700;}
+    .c-neg{color:#E2423D;font-weight:700;}
+    .c-flat{color:#475A6A;font-weight:700;}
+
+    .stat-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:30px;}
+    .scard{background:#FFFFFF;border:1px solid #DCE3EB;border-radius:var(--rl);padding:28px 18px;text-align:center;box-shadow:0 1px 6px rgba(29,40,57,.07);}
+    .scard .sc-val{font-family:'Barlow Condensed',sans-serif;font-size:52px;font-weight:700;color:#FF5D52;line-height:1;}
+    .scard .sc-lbl{font-size:12px;color:#475A6A;text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin-top:8px;}
+    .scard .sc-sub{font-size:12px;color:#7A90A2;margin-top:4px;}
+
+    .price-table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;margin-bottom:28px;box-shadow:0 1px 4px rgba(0,0,0,0.06);}
+    .price-table th{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#475A6A;background:#DCE3EB;padding:13px 18px;text-align:left;border-bottom:1px solid #C8D2DB;}
+    .price-table td{padding:14px 18px;border-bottom:1px solid #DCE3EB;font-size:15px;color:#1D2839;vertical-align:middle;}
+    .price-table tr:last-child td{border-bottom:none;}
+    .price-table tr:hover td{background:#fafafa;}
+    .tier-badge{display:inline-flex;align-items:center;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:4px 12px;border-radius:20px;}
+    .tier-high{background:rgba(76,175,125,.12);color:#2e7d4f;border:1px solid rgba(76,175,125,.35);}
+    .tier-med{background:rgba(71,90,106,.12);color:#333E50;border:1px solid rgba(71,90,106,.35);}
+    .tier-low{background:rgba(244,163,67,.12);color:#b57a1e;border:1px solid rgba(244,163,67,.35);}
+    .tier-lowcap{background:rgba(255,93,82,.12);color:#E2423D;border:1px solid rgba(255,93,82,.35);}
+    .price-val{font-family:'Barlow Condensed',sans-serif;font-size:19px;font-weight:700;color:#1D2839;}
+    .cap-val{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;}
+    .noi-val{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:600;color:var(--muted);}
+    .cap-high{color:var(--green);}
+    .cap-med{color:var(--blue);}
+    .cap-low{color:var(--amber);}
+
+    .nc{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:24px 28px;box-shadow:0 1px 4px rgba(0,0,0,0.06);display:block;text-decoration:none;color:inherit;}
+    .nc.nc-clickable{cursor:pointer;transition:border-color .2s,box-shadow .2s,transform .15s;}
+    .nc.nc-clickable:hover{border-color:#FF5D52;box-shadow:0 4px 14px rgba(29,40,57,.10);transform:translateY(-2px);}
+    .nc-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+    .nc-date-plain{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:600;letter-spacing:.06em;color:#7A90A2;}
+    .nc-src{font-size:13px;color:#475A6A;background:#DCE3EB;padding:3px 10px;border-radius:4px;}
+    .nc-headline{font-size:17px;font-weight:700;color:#1D2839;margin-bottom:8px;line-height:1.45;}
+    .nc-desc{font-size:14px;color:#475A6A;line-height:1.65;margin-bottom:10px;}
+    .nc-link{display:inline-flex;align-items:center;gap:5px;font-size:13px;color:#FF5D52;text-decoration:none;font-weight:600;margin-top:6px;}
+    .nc-link:hover{color:#E2423D;text-decoration:underline;}
+    .prop-name{font-size:11px;color:#7A90A2;font-style:italic;margin-top:2px;line-height:1.3;}
+    .tier-address{font-size:11px;color:#4A9CC8;font-style:italic;margin-top:3px;line-height:1.3;font-weight:500;}
+    .nc-tp{background:rgba(74,156,200,.08);border-left:3px solid #4A9CC8;border-radius:0 6px 6px 0;padding:10px 14px;margin-top:10px;}
+    .nc-tp-label{display:block;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#4A9CC8;margin-bottom:6px;}
+    .nc-tp-list{list-style:disc;padding-left:18px;margin:0;display:flex;flex-direction:column;gap:6px;}
+    .nc-tp-list li{font-size:13px;color:#1D2839;line-height:1.55;padding-left:2px;font-style:italic;}
+
+    .trend-list{list-style:none;display:flex;flex-direction:column;gap:12px;margin-bottom:34px;}
+    .trend-item{background:#FFFFFF;border:1px solid #DCE3EB;border-left:3px solid #FF5D52;border-radius:0 var(--r) var(--r) 0;padding:18px 22px;box-shadow:0 1px 3px rgba(29,40,57,.04);font-size:15px;line-height:1.65;}
+
+    .state{text-align:center;padding:70px 20px;}
+    .spinner{width:34px;height:34px;border:3px solid #DCE3EB;border-top-color:#FF5D52;border-radius:50%;margin:0 auto 18px;animation:spin 1s linear infinite;}
+    .st{font-size:20px;font-weight:700;color:#1D2839;margin-bottom:8px;}
+    .sm{font-size:14px;color:#475A6A;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+
+    .back{margin-bottom:18px;background:#FFFFFF;border:1px solid #DCE3EB;color:#475A6A;padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;}
+    .back:hover{border-color:#FF5D52;color:#FF5D52;}
+    hr.div{border:none;border-top:1px solid var(--border);margin:26px 0;}
+
+    /* Treasury */
+    .spread-box{background:#1D2839;border-radius:10px;padding:22px 26px;color:#FFFFFF;display:flex;align-items:center;gap:28px;margin-bottom:28px;flex-wrap:wrap;}
+    .spread-item{text-align:center;}
+    .spread-val{font-family:'Barlow Condensed',sans-serif;font-size:38px;font-weight:700;color:#FF5D52;}
+    .spread-lbl{font-size:12px;color:#DCE3EB;text-transform:uppercase;letter-spacing:.09em;margin-top:4px;}
+    .cme-note{background:#fff;border:1px solid #DCE3EB;border-left:3px solid #4A9CC8;border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:10px;font-size:14px;color:#1D2839;line-height:1.6;}
+
+    /* Closing Segment */
+    .cs-card{display:flex;gap:20px;background:#FFFFFF;border:1px solid #DCE3EB;border-radius:var(--rl);padding:26px 28px;margin-bottom:16px;box-shadow:0 1px 4px rgba(29,40,57,.06);}
+    .cs-icon{font-size:28px;flex-shrink:0;line-height:1.2;padding-top:2px;}
+    .cs-body{flex:1;}
+    .cs-title{font-family:'Raleway',sans-serif;font-size:18px;font-weight:700;color:#1D2839;margin-bottom:12px;}
+    .cs-list{list-style:none;display:flex;flex-direction:column;gap:10px;}
+    .cs-list li{font-size:15px;color:#475A6A;line-height:1.65;padding-left:18px;position:relative;}
+    .cs-list li::before{content:"–";position:absolute;left:0;color:#FF5D52;font-weight:700;}
+    .cs-sectors li::before{display:none;}
+    .cs-sectors li{padding-left:0;}
+    .cs-tag{display:inline-flex;align-items:center;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:3px 10px;border-radius:4px;margin-right:8px;white-space:nowrap;}
+    .cs-tag-best{background:rgba(76,175,125,.12);color:#2e7d4f;border:1px solid rgba(76,175,125,.3);}
+    .cs-tag-sel{background:rgba(71,90,106,.10);color:#2E3F50;border:1px solid rgba(71,90,106,.25);}
+    .cs-tag-cau{background:rgba(244,163,67,.12);color:#b57a1e;border:1px solid rgba(244,163,67,.3);}
+    .cs-tag-con{background:rgba(74,156,200,.10);color:#1a5f80;border:1px solid rgba(74,156,200,.28);}
+    .cs-tag-avoid{background:rgba(255,93,82,.10);color:#c0362d;border:1px solid rgba(255,93,82,.28);}
+    @media(max-width:600px){.cs-card{flex-direction:column;gap:12px;padding:20px;} .cs-icon{font-size:24px;}}
+
+    @media(max-width:1100px){
+      .ov-grid{grid-template-columns:repeat(2,1fr);}
+      .stat-strip{grid-template-columns:repeat(3,1fr);}
+    }
+    @media(max-width:700px){
+      .ov-grid{grid-template-columns:1fr;}
+      .stat-strip{grid-template-columns:repeat(2,1fr);}
+      .hdr{padding:0 16px;}
+      .main{padding:20px 16px;}
+      .tabs{padding:0 16px;}
+      .spread-box{flex-direction:column;align-items:flex-start;}
+    }
+  </style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="hdr-l">
+    <div class="logo">Secure&nbsp;<span>Net</span>&nbsp;Lease</div>
+    <div class="hdiv"></div>
+    <div class="hsub">Market Dashboard</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <select class="mbadge" id="hdr-month" onchange="switchMonth(this.value)" title="Select month"><option value="">Loading…</option></select>
+    <span class="upd" id="hdr-upd"></span>
+  </div>
+</header>
+
+<nav class="tabs">
+  <button class="tb active" onclick="showTab('overview')">Overview</button>
+  <button class="tb" onclick="showTab('7eleven')">7-Eleven</button>
+  <button class="tb" onclick="showTab('starbucks')">Starbucks</button>
+  <button class="tb" onclick="showTab('chipotle')">Chipotle</button>
+  <button class="tb" onclick="showTab('raisingcanes')">Raising Cane's</button>
+  <button class="tb" onclick="showTab('treasury')">10-Yr Treasury</button>
+  <button class="tb" onclick="showTab('industry')">Industry Trends</button>
+  <button class="tb" onclick="showTab('news')">News &amp; Articles</button>
+</nav>
+
+<main class="main">
+  <div id="loading" class="state">
+    <div class="spinner"></div>
+    <div class="st">Fetching latest data&hellip;</div>
+    <div class="sm">Connecting to your Google Sheet. Just a moment.</div>
+  </div>
+  <div id="error" class="state" style="display:none;">
+    <div class="st">Could not load data</div>
+    <div class="sm" id="err-msg"></div>
+  </div>
+  <div id="dash" style="display:none;">
+
+    <div class="panel active" id="tab-overview">
+      <div class="pg-title">Market Overview</div>
+      <div class="pg-sub" id="ov-sub">Current Month Snapshot</div>
+      <div class="sl">Tenant Snapshot &mdash; Click to view detail</div>
+      <div class="ov-grid" id="ov-grid"></div>
+    </div>
+
+    <div class="panel" id="tab-7eleven">
+      <button class="back" onclick="showTab('overview')">&#8592; Overview</button>
+      <div class="pg-title">7-Eleven</div>
+      <div class="pg-sub" id="sub-7eleven">On Market &amp; Sold &mdash; Current Month</div>
+      <div id="c-7eleven"></div>
+      <div id="c-7eleven-news-wrap" style="display:none;margin-top:32px;">
+        <div class="sl">News &amp; Articles</div>
+        <div id="c-7eleven-articles"><div style="color:#7A90A2;padding:12px 0;font-size:14px;">Loading articles&hellip;</div></div>
+      </div>
+    </div>
+    <div class="panel" id="tab-starbucks">
+      <button class="back" onclick="showTab('overview')">&#8592; Overview</button>
+      <div class="pg-title">Starbucks</div>
+      <div class="pg-sub" id="sub-starbucks">On Market &amp; Sold &mdash; Current Month</div>
+      <div id="c-starbucks"></div>
+      <div id="c-starbucks-news-wrap" style="display:none;margin-top:32px;">
+        <div class="sl">News &amp; Articles</div>
+        <div id="c-starbucks-articles"><div style="color:#7A90A2;padding:12px 0;font-size:14px;">Loading articles&hellip;</div></div>
+      </div>
+    </div>
+    <div class="panel" id="tab-chipotle">
+      <button class="back" onclick="showTab('overview')">&#8592; Overview</button>
+      <div class="pg-title">Chipotle</div>
+      <div class="pg-sub" id="sub-chipotle">On Market &amp; Sold &mdash; Current Month</div>
+      <div id="c-chipotle"></div>
+      <div id="c-chipotle-news-wrap" style="display:none;margin-top:32px;">
+        <div class="sl">News &amp; Articles</div>
+        <div id="c-chipotle-articles"><div style="color:#7A90A2;padding:12px 0;font-size:14px;">Loading articles&hellip;</div></div>
+      </div>
+    </div>
+    <div class="panel" id="tab-raisingcanes">
+      <button class="back" onclick="showTab('overview')">&#8592; Overview</button>
+      <div class="pg-title">Raising Cane's</div>
+      <div class="pg-sub" id="sub-raisingcanes">On Market &amp; Sold &mdash; Current Month</div>
+      <div id="c-raisingcanes"></div>
+      <div id="c-raisingcanes-news-wrap" style="display:none;margin-top:32px;">
+        <div class="sl">News &amp; Articles</div>
+        <div id="c-raisingcanes-articles"><div style="color:#7A90A2;padding:12px 0;font-size:14px;">Loading articles&hellip;</div></div>
+      </div>
+    </div>
+
+    <!-- TREASURY — values always from TREASURY_STATIC below -->
+    <div class="panel" id="tab-treasury">
+      <div class="pg-title">10-Year Treasury</div>
+      <div class="pg-sub">Rate Data &amp; Talking Points</div>
+
+      <div class="sl">10-Year Treasury</div>
+      <div id="treas-10yr-table"></div>
+
+      <div class="sl" style="margin-top:8px;">5-Year Treasury</div>
+      <div id="treas-5yr-table"></div>
+
+      <div class="sl" style="margin-top:8px;">CME Group &mdash; Fed Watch</div>
+      <div id="treas-cme-block"></div>
+
+      <div class="sl" style="margin-top:8px;">Cap Rate Context</div>
+      <div class="spread-box" id="treas-spread-box"></div>
+    </div>
+
+    <div class="panel" id="tab-news">
+      <div class="pg-title">News &amp; Articles</div>
+      <div class="pg-sub">Live from News for Podcast spreadsheet</div>
+      <div id="news-loading" style="padding:40px;text-align:center;color:#475A6A;">Loading articles&hellip;</div>
+      <div id="news-grouped" style="display:none;"></div>
+    </div>
+
+    <div class="panel" id="tab-industry">
+      <div class="pg-title">Industry Trends</div>
+      <div class="pg-sub">CRE News &amp; Insights</div>
+
+      <div class="sl">CRE News &amp; Insights</div>
+      <div id="cre-articles"><div style="color:#7A90A2;padding:12px 0;font-size:14px;">Loading CRE articles&hellip;</div></div>
+
+      <div class="sl" style="margin-top:32px;">Closing Segment &mdash; Key Talking Points</div>
+      <div id="closing-segment">
+
+        <div class="cs-card">
+          <div class="cs-icon">&#128176;</div>
+          <div class="cs-body">
+            <div class="cs-title">Cap-Rate Expectations</div>
+            <ul class="cs-list">
+              <li>Modest 5&ndash;15 bps compression expected across most sectors &mdash; but the 10-year near 4.25% is a hard ceiling</li>
+              <li>Net lease already sub-8% for quality assets &mdash; institutional competition is closing that window fast</li>
+              <li>Office is the exception &mdash; pricing near land value creates asymmetric upside for buyers with a conversion thesis</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="cs-card">
+          <div class="cs-icon">&#129354;</div>
+          <div class="cs-body">
+            <div class="cs-title">Deal Competition</div>
+            <ul class="cs-list">
+              <li>Deal volume projected up 16% YoY &mdash; multifamily, net lease, and grocery-anchored retail are the most competitive right now</li>
+              <li>74% of institutional investors want to buy more this year but very few want to sell &mdash; quality inventory is squeezed</li>
+              <li>Distressed office is the most buyer-friendly environment in the market &mdash; low competition, motivated sellers, values near the floor</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="cs-card">
+          <div class="cs-icon">&#127974;</div>
+          <div class="cs-body">
+            <div class="cs-title">Debt Availability</div>
+            <ul class="cs-list">
+              <li>Agency debt is the best story: Fannie and Freddie both raised multifamily caps to $88B &mdash; a 20% increase</li>
+              <li>Life company debt wins for core deals: ~170 bps spreads, 50&ndash;65% LTV, most competitive execution available</li>
+              <li>CMBS workable at ~250 bps but rising delinquencies are making lenders more selective &mdash; bridge lending on office or lodging is extremely difficult</li>
+              <li>Private credit is filling the gap left by regional banks and is very active where traditional lenders won&apos;t go</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="cs-card">
+          <div class="cs-icon">&#128506;&#65039;</div>
+          <div class="cs-body">
+            <div class="cs-title">Relative Value: Best Sectors &amp; Markets</div>
+            <ul class="cs-list cs-sectors">
+              <li><span class="cs-tag cs-tag-best">&#9989; Best Now</span> Necessity net lease, open-air grocery retail, cold-chain industrial &mdash; Dallas, Nashville, Charlotte, Tampa</li>
+              <li><span class="cs-tag cs-tag-sel">&#9989; Selective</span> Sun Belt multifamily at peak supply; senior housing acquisitions</li>
+              <li><span class="cs-tag cs-tag-cau">&#9888;&#65039; Caution</span> Coastal industrial in SoCal and Pacific Northwest &mdash; tariff headwinds are real</li>
+              <li><span class="cs-tag cs-tag-con">&#128273; Contrarian</span> Distressed office in Chicago, Denver, D.C. at 10&ndash;20 cents on the dollar for conversion buyers</li>
+              <li><span class="cs-tag cs-tag-avoid">&#128683; Avoid</span> Class B/C office with no conversion path; lodging with near-term CMBS maturities</li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+/* ── CONFIG ── */
+var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby2owGRpXxdLtBy-3YDK9NBE74Sdy_MORHQ-03Lb1jPDhTO0hrOIyAHBH8ixLWbBnIO/exec";
+
+var NEWS_SHEET_ID = "1n8axOFmhWuZUf2QNWLhBuW6k6Lp5FsKe2oAPaVqlU8A";
+var NEWS_TABS = [
+  { tenant: "7-Eleven",        gid: "0"             },
+  { tenant: "Chipotle",        gid: "2019349094"    },
+  { tenant: "Starbucks",       gid: "936802471"     },
+  { tenant: "Raising Cane's",  gid: "1674778330"    },
+  { tenant: "CRE News",        gid: "330455571"     },
+  { tenant: "Closing Segment", gid: "763896441"     }
+];
+
+var propResults = {};
+var propPending = 0;
+
+function fetchPropNames() {
+  var PROP_TABS = [
+    { tenant: 'sevenEleven',  gid: '0' },
+    { tenant: 'chipotle',     gid: '2.019349094e+09' },
+    { tenant: 'starbucks',    gid: '936802471' },
+    { tenant: 'raisingCanes', gid: '1.67477833e+09' }
+  ];
+  propPending = PROP_TABS.length;
+  PROP_TABS.forEach(function(tab) {
+    var cb = 'propCb_' + tab.tenant;
+    window[cb] = function(resp) {
+      try {
+        var rows = resp.table.rows;
+        // row index 2 = row 3, row index 4 = row 5
+        function cellVal(rowIdx, colIdx) {
+          var r = rows[rowIdx];
+          if (!r || !r.c || !r.c[colIdx]) return '';
+          return r.c[colIdx].v != null ? String(r.c[colIdx].v).trim() : '';
+        }
+        propResults[tab.tenant] = {
+          highPrice: cellVal(2, 0), // L3 (col 0 after select)
+          highCap:   cellVal(2, 1), // M3
+          highNoi:   cellVal(2, 2), // N3
+          lowPrice:  cellVal(4, 0), // L5
+          lowCap:    cellVal(4, 1), // M5
+          lowNoi:    cellVal(4, 2)  // N5
+        };
+      } catch(e) { propResults[tab.tenant] = {}; }
+      propPending--;
+      if (propPending === 0) rerenderTenants();
+    };
+    var s = document.createElement('script');
+    s.onerror = function() { propResults[tab.tenant] = {}; propPending--; if(propPending===0) rerenderTenants(); };
+    s.src = 'https://docs.google.com/spreadsheets/d/' + NEWS_SHEET_ID + '/gviz/tq?tqx=out:json;responseHandler:' + cb + '&gid=' + tab.gid + '&tq=' + encodeURIComponent('select Col12,Col13,Col14');
+    document.head.appendChild(s);
+  });
+}
+
+function rerenderTenants() {
+  if (!window._lastTenantData) return;
+  var ten = window._lastTenantData;
+  renderTenant('c-7eleven',      ten.sevenEleven,  propResults['sevenEleven']  || {});
+  renderTenant('c-starbucks',    ten.starbucks,    propResults['starbucks']    || {});
+  renderTenant('c-chipotle',     ten.chipotle,     propResults['chipotle']     || {});
+  renderTenant('c-raisingcanes', ten.raisingCanes, propResults['raisingCanes'] || {});
+}
+
+/*
+ * ── TREASURY STATIC DATA ──────────────────────────────────────────────
+ * These values are ALWAYS shown. Update this object each month.
+ * The dashboard does NOT pull treasury values from the Apps Script.
+ * ─────────────────────────────────────────────────────────────────────
+ */
+var TREASURY_STATIC = {
+  tenYear: {
+    periods: [
+      { name: "March 1\u2013March 31", high: 4.44, median: 4.26, low: 4.05 },
+      { name: "April 1\u2013April 8",  high: 4.35, median: 4.33, low: 4.29 }
+    ],
+    current:    "4.27% (4/9)",
+    sourceLink: "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve&field_tdr_date_value=2025",
+    sourceNote: "Select type: Daily Treasury Par Yield Curve Rates \u2014 Select Time Period: Current Month or 2026"
+  },
+  fiveYear: {
+    periods: [
+      { name: "March 1\u2013March 31", high: 4.08, median: 3.87, low: 3.62 },
+      { name: "April 1\u2013April 8",  high: 3.99, median: 3.97, low: 3.92 }
+    ]
+  },
+  cme: {
+    asOf:        "4/7/2026",
+    meeting:     "4/29/2026 Fed Meeting",
+    currentRate: "350\u2013375",
+    scenarios: [
+      { range: "350\u2013375", pct: "98.4%" },
+      { range: "375\u2013400", pct: "1.6%"  }
+    ],
+    notes: [
+      "Leander Spreads: 200\u2013240 bps",
+      "Rates 5.85\u20136.6% on investment grade. Spreads have risen 30\u201340 bps over the past 45 days."
+    ],
+    link: "https://www.cmegroup.com/markets/interest-rates/cme-fedwatch-tool.html"
+  }
+};
+
+/* ── HELPERS ── */
+function escHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function fPrice(v) { return v==null?'&mdash;':'$'+Number(v).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0}); }
+function fCap(v) { if(v==null)return'&mdash;'; var n=Number(v); if(n>0&&n<0.5)n*=100; return n.toFixed(2)+'%'; }
+function fNum(v)  { return v==null?'&mdash;':Number(v).toLocaleString(); }
+function formatDate(raw) {
+  if(!raw) return '';
+  var m=String(raw).match(/Date\((\d+),(\d+),(\d+)\)/);
+  if(m){var mo=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return mo[parseInt(m[2],10)]+' '+parseInt(m[3],10)+', '+m[1];}
+  return String(raw);
+}
+
+/* ── TABS ── */
+function showTab(id) {
+  if(id==='news'||id==='industry'||id==='7eleven'||id==='starbucks'||id==='chipotle'||id==='raisingcanes') loadNewsFromCSV(); fetchPropNames();
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.tb').forEach(function(b){b.classList.remove('active');});
+  var p=document.getElementById('tab-'+id);
+  if(p) p.classList.add('active');
+  document.querySelectorAll('.tb').forEach(function(b){
+    if((b.getAttribute('onclick')||'').indexOf("'"+id+"'")>-1) b.classList.add('active');
+  });
+  window.scrollTo(0,0);
+}
+
+/* ── OVERVIEW CARD ── */
+function ovCard(name,t,tabId){
+  var nc=t.netChange;
+  var col=nc>0?'#4CAF7D':nc<0?'#FF5D52':'#8A96A3';
+  var lbl=nc>0?'Net Increase':nc<0?'Net Decrease':'No Change';
+  return '<div class="ov-card" onclick="showTab(\''+tabId+'\')">'+
+    '<div>'+
+      '<div class="ov-name">'+escHtml(name)+'</div>'+
+      '<div style="display:flex;align-items:baseline;gap:10px;margin-bottom:4px;">'+
+        '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:48px;font-weight:800;color:'+col+';line-height:1;">'+(nc!=null?(nc>0?'+'+nc:nc):'&mdash;')+'</div>'+
+        '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:16px;font-weight:600;color:'+col+';padding-bottom:8px;">'+lbl+'</div>'+
+      '</div>'+
+      '<div class="ov-meta" style="margin-bottom:14px;">'+(t.supplyMonths!=null?Number(t.supplyMonths).toFixed(1)+' mo supply':'')+'</div>'+
+      '<div class="ov-nums">'+
+        '<div class="ov-box"><div class="lb">On Market</div><div class="vl">'+fNum(t.currentCount)+'</div><div class="sb">current listings</div></div>'+
+        '<div class="ov-box"><div class="lb">Sold prev mo</div><div class="vl">'+fNum(t.soldCount)+'</div><div class="sb">transactions</div></div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="ov-meta">Click for pricing tiers and detail</div>'+
+  '</div>';
+}
+
+/* ── TIER ROW ── */
+function tierRow(tier,label,bCls,cCls,props){
+  if(!tier) return '';
+  props = props || {};
+  var addrLine    = tier.address    ? '<div class="tier-address">&#128205; '+escHtml(tier.address)+'</div>'    : '';
+  var capAddrLine = tier.capAddress ? '<div class="tier-address">&#128205; '+escHtml(tier.capAddress)+'</div>' : '';
+  var noiAddrLine = tier.noiAddress ? '<div class="tier-address">&#128205; '+escHtml(tier.noiAddress)+'</div>' : '';
+  var priceSub = props.price ? '<div class="prop-name">'+escHtml(props.price)+'</div>' : '';
+  var capSub   = props.cap   ? '<div class="prop-name">'+escHtml(props.cap)+'</div>'   : '';
+  var noiSub   = props.noi   ? '<div class="prop-name">'+escHtml(props.noi)+'</div>'   : '';
+  return '<tr><td><span class="tier-badge '+bCls+'">'+label+'</span></td>'+
+    '<td><span class="price-val">'+fPrice(tier.price)+'</span>'+addrLine+priceSub+'</td>'+
+    '<td><span class="cap-val '+cCls+'">'+fCap(tier.cap)+'</span>'+capAddrLine+capSub+'</td>'+
+    '<td><span class="noi-val">'+fPrice(tier.noi)+'</span>'+noiAddrLine+noiSub+'</td></tr>';
+}
+
+/* ── TENANT DETAIL ── */
+function renderTenant(cid,t,props){
+  props = props || {};
+  var el=document.getElementById(cid);
+  if(!el) return;
+  if(!t){el.innerHTML='<div class="state"><div class="st">No data found</div><div class="sm">This tenant was not found in the spreadsheet.</div></div>';return;}
+  var nc=t.netChange;
+  var nCls=nc!=null?(nc>0?'c-pos':nc<0?'c-neg':'c-flat'):'c-flat';
+  var nLbl=nc!=null?(nc>0?'Net Increase':nc<0?'Net Decrease':'No Change'):'No Data';
+  var nVal=nc>0?'+'+nc:(nc!=null?String(nc):'0');
+  var isRC=(cid==='c-raisingcanes');
+  el.innerHTML=
+    '<div class="net-bar">'+
+      '<span class="net-txt '+nCls+'">'+nLbl+': '+nVal+'</span>'+
+      '<span class="net-lbl">'+(t.supplyMonths!=null?Number(t.supplyMonths).toFixed(1)+' months supply':'')+'</span>'+
+    '</div>'+
+    '<div class="sl">Market Statistics</div>'+
+    '<div class="stat-strip">'+
+      '<div class="scard"><div class="sc-val">'+fNum(t.currentCount)+'</div><div class="sc-lbl">On Market Now</div><div class="sc-sub">current listings</div></div>'+
+      '<div class="scard"><div class="sc-val">'+fNum(t.lastMonth)+'</div><div class="sc-lbl">Last Month</div><div class="sc-sub">previous count</div></div>'+
+      '<div class="scard"><div class="sc-val">'+fNum(t.soldCount)+'</div><div class="sc-lbl">Sold</div><div class="sc-sub">previous month</div></div>'+
+      '<div class="scard"><div class="sc-val">'+fNum(t.newCount)+'</div><div class="sc-lbl">New Listings</div><div class="sc-sub">current month</div></div>'+
+      '<div class="scard"><div class="sc-val">'+(t.supplyMonths!=null?Number(t.supplyMonths).toFixed(1):'&mdash;')+'</div><div class="sc-lbl">Supply</div><div class="sc-sub">months of inventory</div></div>'+
+    '</div>'+
+    '<hr class="div">'+
+    '<div class="sl">Price / Cap Rate / NOI Breakdown</div>'+
+    '<table class="price-table">'+
+      '<thead><tr><th>Tier</th><th>Price</th><th>Cap Rate</th><th>NOI</th></tr></thead>'+
+      '<tbody>'+
+        tierRow(t.high,   'High',   'tier-high',   'cap-high', {price:props.highPrice, cap:props.highCap, noi:props.highNoi})+
+        tierRow(t.median, 'Median', 'tier-med',    'cap-med')+
+        tierRow(t.low,    'Low',    'tier-low',    'cap-low',  {price:props.lowPrice,  cap:props.lowCap,  noi:props.lowNoi})+
+        (!isRC&&t.lowCap?tierRow(t.lowCap,'Low CAP','tier-lowcap','cap-low'):'')+
+      '</tbody>'+
+    '</table>';
+}
+
+/* ── TREASURY — ALWAYS uses TREASURY_STATIC, never live data ── */
+function buildCompareTable(instrument){
+  var periods=(instrument&&instrument.periods)||[];
+  if(!periods.length) return '<div style="color:#7A90A2;padding:12px 0;">No data.</div>';
+  var cols=periods.length;
+  var gridCols='130px '+Array(cols).fill('1fr').join(' ');
+  var html='<div style="display:grid;grid-template-columns:'+gridCols+';border:1px solid #DCE3EB;border-radius:10px;overflow:hidden;margin-bottom:10px;background:#fff;box-shadow:0 1px 4px rgba(29,40,57,.06);">';
+
+  /* header row */
+  html+='<div style="background:#1D2839;padding:12px 16px;"></div>';
+  periods.forEach(function(p){
+    html+='<div style="background:#1D2839;padding:12px 16px;text-align:center;font-family:\'Barlow Condensed\',sans-serif;font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#DCE3EB;border-left:1px solid #2C3E50;">'+escHtml(p.name||'')+'</div>';
+  });
+
+  /* data rows */
+  [
+    {label:'High',   key:'high',   color:'#1D2839',bg:'#F7F8FA',sz:'24',fw:'700'},
+    {label:'Median', key:'median', color:'#FF5D52',bg:'#FFF8F7',sz:'30',fw:'800'},
+    {label:'Low',    key:'low',    color:'#1D2839',bg:'#F7F8FA',sz:'24',fw:'700'}
+  ].forEach(function(r){
+    html+='<div style="padding:14px 16px;font-family:\'Barlow Condensed\',sans-serif;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:'+(r.key==='median'?'#FF5D52':'#475A6A')+';background:'+r.bg+';border-top:1px solid #DCE3EB;">'+r.label+'</div>';
+    periods.forEach(function(p){
+      var v=p[r.key];
+      html+='<div style="padding:14px 16px;text-align:center;font-family:\'Barlow Condensed\',sans-serif;font-size:'+r.sz+'px;font-weight:'+r.fw+';color:'+r.color+';background:'+r.bg+';border-top:1px solid #DCE3EB;border-left:1px solid #DCE3EB;">'+(v!=null?v.toFixed(2)+'%':'&mdash;')+'</div>';
+    });
+  });
+  html+='</div>';
+
+  if(instrument.current){
+    html+='<div style="display:inline-flex;align-items:center;gap:12px;background:#1D2839;border-radius:8px;padding:12px 20px;margin-bottom:8px;">'+
+      '<div><div style="font-family:\'Barlow Condensed\',sans-serif;font-size:32px;font-weight:700;color:#FF5D52;line-height:1;">'+escHtml(instrument.current)+'</div>'+
+      '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:#7A90A2;margin-top:4px;">Current Rate</div></div></div>';
+  }
+  if(instrument.sourceLink){
+    html+='<div style="font-size:12px;color:#7A90A2;margin-bottom:4px;">Treasury Data Pulled From: <a href="'+instrument.sourceLink+'" target="_blank" rel="noopener" style="color:#FF5D52;font-weight:600;">home.treasury.gov</a></div>';
+  }
+  if(instrument.sourceNote){
+    html+='<div style="font-size:12px;color:#7A90A2;margin-bottom:24px;">'+escHtml(instrument.sourceNote)+'</div>';
+  }
+  return html;
+}
+
+function renderTreasury(){
+  var tt=TREASURY_STATIC;
+
+  document.getElementById('treas-10yr-table').innerHTML=buildCompareTable(tt.tenYear);
+  document.getElementById('treas-5yr-table').innerHTML=buildCompareTable(tt.fiveYear);
+
+  /* CME */
+  var cme=tt.cme;
+  var html='';
+  html+='<div style="font-size:13px;color:#475A6A;margin-bottom:16px;font-weight:500;">'+
+    '<strong>As of '+escHtml(cme.asOf)+'</strong>&nbsp;&nbsp;&middot;&nbsp;&nbsp;'+escHtml(cme.meeting)+'</div>';
+
+  html+='<div style="display:inline-flex;align-items:center;gap:10px;background:#1D2839;color:#fff;border-radius:8px;padding:12px 20px;margin-bottom:16px;">'+
+    '<div><div style="font-family:\'Barlow Condensed\',sans-serif;font-size:32px;font-weight:700;color:#FF5D52;line-height:1;">'+escHtml(cme.currentRate)+' bps</div>'+
+    '<div style="font-size:12px;color:#DCE3EB;text-transform:uppercase;letter-spacing:.08em;">Current Fed Funds Rate</div></div></div>';
+
+  html+='<div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">';
+  cme.scenarios.forEach(function(s){
+    var pct=parseFloat((s.pct||'0').replace('%',''));
+    var bar=isNaN(pct)?0:Math.round(pct);
+    html+='<div style="background:#fff;border:1px solid #DCE3EB;border-radius:8px;padding:14px 16px;box-shadow:0 1px 4px rgba(29,40,57,.06);">'+
+      '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">'+
+      '<span style="font-family:\'Barlow Condensed\',sans-serif;font-size:18px;font-weight:700;color:#1D2839;">'+escHtml(s.range)+' bps</span>'+
+      '<span style="font-family:\'Barlow Condensed\',sans-serif;font-size:22px;font-weight:800;color:#FF5D52;">'+escHtml(s.pct)+'</span></div>'+
+      '<div style="height:6px;background:#F3F3F3;border-radius:3px;overflow:hidden;">'+
+      '<div style="height:100%;width:'+bar+'%;background:#FF5D52;border-radius:3px;"></div></div></div>';
+  });
+  html+='</div>';
+
+  cme.notes.forEach(function(n){ html+='<div class="cme-note">'+escHtml(n)+'</div>'; });
+  html+='<a href="'+cme.link+'" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;font-size:13px;color:#FF5D52;font-weight:600;text-decoration:none;margin-top:6px;">CME FedWatch Tool &#8594;</a>';
+  document.getElementById('treas-cme-block').innerHTML=html;
+
+  /* spread — use latest period median */
+  var periods10=tt.tenYear.periods;
+  var latestMedian=periods10[periods10.length-1].median;
+  var avgCap=5.15;
+  var spreadVal=(avgCap-latestMedian).toFixed(2);
+  var sColor=parseFloat(spreadVal)>0?'#4CAF7D':'#FF5D52';
+  document.getElementById('treas-spread-box').innerHTML=
+    '<div class="spread-item"><div class="spread-val">'+latestMedian.toFixed(2)+'%</div><div class="spread-lbl">10-Yr Treasury (Latest Median)</div></div>'+
+    '<div style="font-size:28px;color:#DCE3EB;padding:0 4px;">vs</div>'+
+    '<div class="spread-item"><div class="spread-val">5.15%</div><div class="spread-lbl">Median 7-Eleven Cap</div></div>'+
+    '<div style="font-size:28px;color:#DCE3EB;padding:0 4px;">=</div>'+
+    '<div class="spread-item"><div class="spread-val" style="color:'+sColor+';">'+(parseFloat(spreadVal)>0?'+':'')+spreadVal+'%</div><div class="spread-lbl">Cap Rate Spread</div></div>'+
+    '<div style="flex:1;text-align:right;font-size:12px;color:#DCE3EB;align-self:flex-end;line-height:1.6;">Higher spread = more<br>attractive to buyers</div>';
+}
+
+/* ── INDUSTRY TRENDS ── */
+function renderTrends(trends){
+  var trendItems=(trends||[]).filter(function(t){
+    return !t.match(/treasury|5.year|10.year|CME Group|CRE News/i) && (t||'').length>5;
+  });
+  var el=document.getElementById('trend-list');
+  if(!el) return;
+  if(!trendItems.length){el.style.display='none';return;}
+  el.innerHTML=trendItems.map(function(t){return '<li class="trend-item">'+escHtml(t)+'</li>';}).join('');
+}
+
+/* ── NEWS ── */
+var newsLoaded=false,newsResults={},newsPending=0;
+function loadNewsFromCSV(){
+  if(newsLoaded) return;
+  newsPending=NEWS_TABS.length; newsResults={};
+  NEWS_TABS.forEach(function(tab){
+    var cb='newsCallback_'+tab.gid;
+    window[cb]=function(data){
+      try{
+        var cols=data.table.cols.map(function(c){return c.label.toLowerCase().trim();});
+        function ci(n){var i=cols.indexOf(n);return i>=0?i:-1;}
+        var hi=ci('headline'),di=ci('description'),li=ci('link'),si=ci('source'),dti=ci('date'),tpi=ci('podcast talking points');
+        var SKIP=['headline','description','link','source','date','podcast talking points','topic','key talking points','title','article','summary'];
+        var arts=[];
+        data.table.rows.forEach(function(row){
+          var c=row.c;
+          function v(i){return c[i]&&c[i].v!=null?String(c[i].v).trim():'';}
+          var hl=hi>=0?v(hi):'',desc=di>=0?v(di):'',lnk=li>=0?v(li):'',src=si>=0?v(si):'',dt=dti>=0?v(dti):'',tp=tpi>=0?v(tpi):'';
+          if(!hl&&!desc) return;
+          if(SKIP.indexOf(hl.toLowerCase())>=0) return;
+          arts.push({headline:hl,description:desc,link:lnk,source:src,date:dt,talkingPoints:tp});
+        });
+        newsResults[tab.tenant]=arts;
+      }catch(e){newsResults[tab.tenant]=[];}
+      newsPending--;if(newsPending===0)renderNewsResults();
+    };
+    var s=document.createElement('script');
+    s.onerror=function(){newsResults[tab.tenant]=[];newsPending--;if(newsPending===0)renderNewsResults();};
+    s.src='https://docs.google.com/spreadsheets/d/'+NEWS_SHEET_ID+'/gviz/tq?tqx=out:json;responseHandler:'+cb+'&gid='+tab.gid;
+    document.head.appendChild(s);
+  });
+}
+function renderNewsResults(){
+  newsLoaded=true;
+  var lEl=document.getElementById('news-loading'),gEl=document.getElementById('news-grouped');
+  if(lEl)lEl.style.display='none';if(gEl)gEl.style.display='block';
+  var ORDER=["CRE News","Closing Segment","7-Eleven","Starbucks","Chipotle","Raising Cane's"];
+  var LABELS={"CRE News":"CRE News &amp; Insights","Closing Segment":"Closing Segment"};
+  var out='';
+  ORDER.forEach(function(tenant){
+    var arts=newsResults[tenant];if(!arts||!arts.length)return;
+    out+='<div class="sl" style="margin-bottom:14px;">'+(LABELS[tenant]||tenant)+'</div>';
+    out+='<div style="display:flex;flex-direction:column;gap:14px;margin-bottom:32px;">';
+    arts.forEach(function(a){
+      var hL=a.link&&a.link.indexOf('http')===0;
+      out+=hL?'<a class="nc nc-clickable" href="'+escHtml(a.link)+'" target="_blank" rel="noopener">':'<div class="nc">';
+      if(a.date||a.source){out+='<div class="nc-meta">';if(a.date)out+='<span class="nc-date-plain">'+escHtml(formatDate(a.date))+'</span>';if(a.source)out+='<span class="nc-src">'+escHtml(a.source)+'</span>';out+='</div>';}
+      if(a.headline)out+='<div class="nc-headline">'+escHtml(a.headline)+'</div>';
+      if(a.description)out+='<div class="nc-desc">'+escHtml(a.description)+'</div>';
+      if(a.talkingPoints){var tpLines=a.talkingPoints.split(/\n|\|/).map(function(s){return s.trim();}).filter(Boolean);out+='<div class="nc-tp"><span class="nc-tp-label">Key Talking Points</span><ul class="nc-tp-list">'+tpLines.map(function(l){return '<li>'+escHtml(l)+'</li>';}).join('')+'</ul></div>';}
+      if(hL)out+='<span class="nc-link">View Article &#8594;</span>';
+      out+=hL?'</a>':'</div>';
+    });
+    out+='</div>';
+  });
+  if(!out)out='<div style="padding:40px;text-align:center;color:#475A6A;">No articles found.</div>';
+  if(gEl)gEl.innerHTML=out;
+
+  /* Populate each tenant tab's articles section */
+    var TENANT_MAP={};
+  TENANT_MAP['7-Eleven']='c-7eleven';
+  TENANT_MAP['Starbucks']='c-starbucks';
+  TENANT_MAP['Chipotle']='c-chipotle';
+  TENANT_MAP['Raising Cane\'s']='c-raisingcanes';
+  Object.keys(TENANT_MAP).forEach(function(tenant){
+    var cid=TENANT_MAP[tenant];
+    var wrap=document.getElementById(cid+'-news-wrap');
+    var artEl=document.getElementById(cid+'-articles');
+    if(!wrap||!artEl) return;
+    var arts=newsResults[tenant]||[];
+    wrap.style.display=arts.length?'block':'none';
+    if(!arts.length){ artEl.innerHTML=''; return; }
+    var tHtml='<div style="display:flex;flex-direction:column;gap:14px;">';
+    arts.forEach(function(a){
+      var hL=a.link&&a.link.indexOf('http')===0;
+      tHtml+=hL?'<a class="nc nc-clickable" href="'+escHtml(a.link)+'" target="_blank" rel="noopener">':'<div class="nc">';
+      if(a.date||a.source){tHtml+='<div class="nc-meta">';if(a.date)tHtml+='<span class="nc-date-plain">'+escHtml(formatDate(a.date))+'</span>';if(a.source)tHtml+='<span class="nc-src">'+escHtml(a.source)+'</span>';tHtml+='</div>';}
+      if(a.headline)tHtml+='<div class="nc-headline">'+escHtml(a.headline)+'</div>';
+      if(a.description)tHtml+='<div class="nc-desc">'+escHtml(a.description)+'</div>';
+      if(a.talkingPoints){var tpLines=a.talkingPoints.split(/\n|\|/).map(function(s){return s.trim();}).filter(Boolean);tHtml+='<div class="nc-tp"><span class="nc-tp-label">Key Talking Points</span><ul class="nc-tp-list">'+tpLines.map(function(l){return '<li>'+escHtml(l)+'</li>';}).join('')+'</ul></div>';}
+      if(hL)tHtml+='<span class="nc-link">View Article &#8594;</span>';
+      tHtml+=hL?'</a>':'</div>';
+    });
+    tHtml+='</div>';
+    artEl.innerHTML=tHtml;
+  });
+
+  /* Also populate Industry Trends > CRE Articles section */
+  var creEl=document.getElementById('cre-articles');
+  if(creEl){
+    var creArts=newsResults['CRE News']||[];
+    if(!creArts.length){
+      creEl.innerHTML='<div style="color:#7A90A2;padding:12px 0;font-size:14px;">No CRE articles found. Add articles to the CRE News tab in the News for Podcast sheet.</div>';
+    } else {
+      var creHtml='<div style="display:flex;flex-direction:column;gap:14px;">';
+      creArts.forEach(function(a){
+        var hL=a.link&&a.link.indexOf('http')===0;
+        creHtml+=hL?'<a class="nc nc-clickable" href="'+escHtml(a.link)+'" target="_blank" rel="noopener">':'<div class="nc">';
+        if(a.date||a.source){creHtml+='<div class="nc-meta">';if(a.date)creHtml+='<span class="nc-date-plain">'+escHtml(formatDate(a.date))+'</span>';if(a.source)creHtml+='<span class="nc-src">'+escHtml(a.source)+'</span>';creHtml+='</div>';}
+        if(a.headline)creHtml+='<div class="nc-headline">'+escHtml(a.headline)+'</div>';
+        if(a.description)creHtml+='<div class="nc-desc">'+escHtml(a.description)+'</div>';
+        if(a.talkingPoints){var tpLines=a.talkingPoints.split(/\n|\|/).map(function(s){return s.trim();}).filter(Boolean);creHtml+='<div class="nc-tp"><span class="nc-tp-label">Key Talking Points</span><ul class="nc-tp-list">'+tpLines.map(function(l){return '<li>'+escHtml(l)+'</li>';}).join('')+'</ul></div>';}
+        if(hL)creHtml+='<span class="nc-link">View Article &#8594;</span>';
+        creHtml+=hL?'</a>':'</div>';
+      });
+      creHtml+='</div>';
+      creEl.innerHTML=creHtml;
+    }
+  }
+}
+
+/* ── MAIN RENDER ── */
+function render(data){
+  document.getElementById('loading').style.display='none';
+  document.getElementById('dash').style.display='block';
+  var d=new Date(data.generatedAt);
+  var MO=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var sel=document.getElementById('hdr-month');
+  /* populate dropdown if not yet done */
+  if(sel.options.length<=1 && window._availableTabs && window._availableTabs.length){
+    sel.innerHTML=window._availableTabs.map(function(t){
+      return '<option value="'+escHtml(t.key)+'">'+escHtml(t.label)+'</option>';
+    }).join('');
+  }
+  /* select the current tab */
+  if(data.monthTab){
+    var found=false;
+    for(var oi=0;oi<sel.options.length;oi++){
+      if(sel.options[oi].value===data.monthTab){sel.selectedIndex=oi;found=true;break;}
+    }
+    if(!found){
+      var opt=document.createElement('option');
+      opt.value=data.monthTab; opt.text=MO[d.getMonth()]+' '+d.getFullYear();
+      sel.insertBefore(opt,sel.firstChild); sel.selectedIndex=0;
+    }
+  }
+  document.getElementById('hdr-upd').textContent='Updated '+d.toLocaleString();
+  document.getElementById('ov-sub').textContent=data.monthTab;
+  var monthLabel=(function(){var m=data.monthTab.match(/([A-Za-z]+ \d{4})$/);return m?m[1]:'Current Month';})();
+  ['7eleven','starbucks','chipotle','raisingcanes'].forEach(function(id){
+    var el=document.getElementById('sub-'+id);
+    if(el) el.textContent='On Market & Sold \u2014 '+monthLabel;
+  });
+  var ten=data.tenants;
+  document.getElementById('ov-grid').innerHTML=
+    ovCard('7-Eleven',      ten.sevenEleven ||{},'7eleven')+
+    ovCard('Starbucks',     ten.starbucks   ||{},'starbucks')+
+    ovCard('Chipotle',      ten.chipotle    ||{},'chipotle')+
+    ovCard("Raising Cane's",ten.raisingCanes||{},'raisingcanes');
+  window._lastTenantData = ten;
+  renderTenant('c-7eleven',      ten.sevenEleven,  propResults['sevenEleven']  || {});
+  renderTenant('c-starbucks',    ten.starbucks,    propResults['starbucks']    || {});
+  renderTenant('c-chipotle',     ten.chipotle,     propResults['chipotle']     || {});
+  renderTenant('c-raisingcanes', ten.raisingCanes, propResults['raisingCanes'] || {});
+  renderTrends(Array.isArray(data.talkingPoints) ? data.talkingPoints : (data.talkingPoints.industryTrends || data.talkingPoints.creNews || []));
+  renderTreasury(); /* always static — no live data used */
+}
+
+/* ── FETCH ── */
+fetchPropNames();
+fetch(APPS_SCRIPT_URL+(window._selectedMonth?'?month='+encodeURIComponent(window._selectedMonth):''))
+  .then(function(r){return r.json();})
+  .then(function(data){
+    if(!data.ok) throw new Error(data.error||'Apps Script error');
+    render(data);
+  })
+  .catch(function(err){
+    document.getElementById('loading').style.display='none';
+    document.getElementById('error').style.display='block';
+    document.getElementById('err-msg').innerHTML=
+      '<strong>Error:</strong> '+escHtml(err.message)+
+      '<br><br>Make sure the Apps Script is deployed with access set to <strong>Anyone</strong>. After any Code.gs changes, create a <strong>new deployment</strong>.';
+  });
+
+/* ── MONTH SWITCHER ── */
+window._selectedMonth = null;
+
+function switchMonth(tabName){
+  if(!tabName) return;
+  window._selectedMonth = tabName;
+  document.getElementById('loading').style.display='block';
+  document.getElementById('dash').style.display='none';
+  fetch(APPS_SCRIPT_URL+'?month='+encodeURIComponent(tabName))
+    .then(function(r){return r.json();})
+    .then(function(data){
+      if(!data.ok) throw new Error(data.error||'Apps Script error');
+      render(data);
+    })
+    .catch(function(err){
+      document.getElementById('loading').style.display='none';
+      document.getElementById('error').style.display='block';
+      document.getElementById('err-msg').innerHTML='<strong>Error:</strong> '+escHtml(err.message);
+    });
+}
+
+function loadAvailableMonths(){
+  fetch(APPS_SCRIPT_URL+'?action=listMonths')
+    .then(function(r){return r.json();})
+    .then(function(data){
+      if(data.ok && data.tabs && data.tabs.length){
+        window._availableTabs = data.tabs;
+        var sel=document.getElementById('hdr-month');
+        sel.innerHTML=data.tabs.map(function(t){
+          return '<option value="'+escHtml(t.key)+'">'+escHtml(t.label)+'</option>';
+        }).join('');
+      }
+    })
+    .catch(function(){/* silent — dropdown will populate on first render */});
+}
+
+loadAvailableMonths();
+</script>
+</body>
+</html>
