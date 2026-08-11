@@ -36,7 +36,7 @@
     select.mbadge option{background:#1a1f2e;color:#fff;font-weight:600;letter-spacing:.05em;text-transform:none;}
     .upd{font-size:11px;color:var(--faint);}
 
-    .tabs{background:#FFFFFF;border-bottom:2px solid #DCE3EB;padding:0 32px;display:flex;overflow-x:auto;}
+    .tabs{background:#FFFFFF;border-bottom:2px solid #DCE3EB;padding:0 32px;display:flex;overflow-x:auto;position:sticky;top:62px;z-index:190}
     .tabs::-webkit-scrollbar{height:3px;}
     .tabs::-webkit-scrollbar-thumb{background:var(--faint);border-radius:2px;}
     .tb{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#475A6A;padding:14px 22px;border:none;background:#FFFFFF;cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;white-space:nowrap;}
@@ -176,7 +176,7 @@
     <span class="upd" id="hdr-upd"></span>
   </div>
 </header>
-
+<img id="episode-banner" src="https://securenetlease.com/wp-content/uploads/2026/03/EPISODE-COVER-cropped.jpg" alt="Retail ReCap Episode Banner" style="width:100%;display:block;max-height:220px;object-fit:cover;transition:opacity .15s ease-out;">
 <nav class="tabs">
   <button class="tb active" onclick="showTab('overview')">Overview</button>
   <button class="tb" onclick="showTab('7eleven')">7-Eleven</button>
@@ -199,9 +199,9 @@
   </div>
   <div id="dash" style="display:none;">
 
-    <div class="panel active" id="tab-overview">
-      <div class="pg-title">Market Overview</div>
-      <div class="pg-sub" id="ov-sub">Current Month Snapshot</div>
+
+<div class="pg-sub" id="ov-sub">Current Month Snapshot</div>
+
 <div class="data-sources" id="ds-overview"></div>
       <div class="sl">Tenant Snapshot &mdash; Click to view detail</div>
       <div class="ov-grid" id="ov-grid"></div>
@@ -879,6 +879,17 @@ function loadAvailableMonths(){
 }
 
 loadAvailableMonths();
+</script>
+<script>
+window.addEventListener('scroll', function() {
+  var banner = document.getElementById('episode-banner');
+  if (!banner) return;
+  var fadeDistance = 200;
+  var opacity = 1 - (window.scrollY / fadeDistance);
+  if (opacity < 0) opacity = 0;
+  if (opacity > 1) opacity = 1;
+  banner.style.opacity = opacity;
+});
 </script>
 </body>
 </html>
